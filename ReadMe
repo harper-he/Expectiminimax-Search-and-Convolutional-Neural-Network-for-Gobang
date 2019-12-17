@@ -1,0 +1,9 @@
+This include tree files: GoBang.py, Experiment.py, Train.py
+
+GoBang.py -- The Interface for AI playing with human
+
+Experiment.py -- The experiment for AI playing with baseline
+
+Train.py -- The structure for training model. To run it, needs to download .sgf data and save in SGF directory first
+
+Versions: Python3.7, Tensorflow 1.14

@@ -3,9 +3,9 @@ import os
 
 class SGF():
     def __init__(self):
-        self.POS = 'dthstdrfassfer'
+        self.POS = 'abcdefghijklmno'
 
-    def readData(self, path):
+    def alphatoNum(self, path):
         f = open(path, 'r')
         data = f.read()
         f.close()
@@ -13,15 +13,16 @@ class SGF():
         board = []
         step = 0
         for point in data[2:-1]:
-            x = self.POS.index(point[2])
-            y = self.POS.index(point[3])
-            color = step % 2 + 1
-            step += 1
-            board.append([x, y, color, step])
+            if not self.POS.find(point[2]) and not self.POS.find(point[3]):
+                x = self.POS.index(point[2])
+                y = self.POS.index(point[3])
+                color = step % 2 + 1
+                step += 1
+                board.append([x, y, color, step])
         return board
 
     def datatoTrain(self, path, color):
-        data = self.readData(path)
+        data = self.alphatoNum(path)
         total_step = len(data)
         train_x = []
         train_y = []
@@ -37,7 +38,7 @@ class SGF():
         return train_x, train_y
 
     @staticmethod
-    def getFile(path):
+    def getSgf(path):
         root = os.listdir(path)
         files = []
         for p in root:
@@ -48,20 +49,20 @@ class SGF():
 class CNN():
     def __init__(self):
         # initialize
-        self.sess = tf.InteractiveSession()
+        self.sess = tf.compat.v1.InteractiveSession()
 
         # paras
         self.W_conv1 = self.weight_varible([5, 5, 1, 32])
         self.b_conv1 = self.bias_variable([32])
 
         # conv layer-1
-        self.x = tf.placeholder(tf.float32, [None, 225])
-        self.y = tf.placeholder(tf.float32, [None, 225])
-        self.x_image = tf.reshape(self.x, [-1, 15, 15, 1])
+        self.x = tf.compat.v1.placeholder(tf.float32, [None, 225])
+        self.y = tf.compat.v1.placeholder(tf.float32, [None, 225])
+        self.x_image = tf.compat.v1.reshape(self.x, [-1, 15, 15, 1])
         self.h_conv1 = tf.nn.relu(self.conv2d(self.x_image, self.W_conv1) + self.b_conv1)
         self.h_pool1 = self.max_pool_2x2(self.h_conv1)
 
-        # conv layer-2
+        #   conv layer-2
         self.W_conv2 = self.weight_varible([5, 5, 32, 64])
         self.b_conv2 = self.bias_variable([64])
         self.h_conv2 = tf.nn.relu(self.conv2d(self.h_pool1, self.W_conv2) + self.b_conv2)
@@ -70,7 +71,7 @@ class CNN():
         # full connection
         self.W_fc1 = self.weight_varible([4 * 4 * 64, 1024])
         self.b_fc1 = self.bias_variable([1024])
-        self.h_pool2_flat = tf.reshape(self.h_pool2, [-1, 4 * 4 * 64])
+        self.h_pool2_flat = tf.reshape(self.h_pool1, [-1, 4 * 4 * 64])
         self.h_fc1 = tf.nn.relu(tf.matmul(self.h_pool2_flat, self.W_fc1) + self.b_fc1)
 
         # dropout
@@ -85,19 +86,19 @@ class CNN():
 
         # model training
         self.sorted_pred = tf.argsort(self.y_conv, direction="DESCENDING")
-        self.cross_entropy = -tf.reduce_sum(self.y * tf.log(self.y_conv))
-        self.train_step = tf.train.AdamOptimizer(1e-3).minimize(self.cross_entropy)
+        self.cross_entropy = -tf.reduce_sum(self.y * tf.math.log(self.y_conv))
+        self.train_step = tf.compat.v1.train.AdamOptimizer(1e-3).minimize(self.cross_entropy)
 
         self.correct_prediction = tf.equal(tf.argmax(self.y_conv, 1), tf.argmax(self.y, 1))
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
-        self.saver = tf.train.Saver()
+        self.saver = tf.compat.v1.train.Saver()
 
-        init = tf.global_variables_initializer()
+        init = tf.compat.v1.global_variables_initializer()
         self.sess.run(init)
 
     @staticmethod
     def weight_varible(shape):
-        initial = tf.truncated_normal(shape, stddev=0.1)
+        initial = tf.random.truncated_normal(shape, stddev=0.1)
         return tf.Variable(initial)
 
     @staticmethod
@@ -111,7 +112,7 @@ class CNN():
 
     @staticmethod
     def max_pool_2x2(x):
-        return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+        return tf.nn.max_pool2d(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
     def expend(self, board):
         new = [[0.0 for i in range(15)] for i in range(15)]
@@ -165,15 +166,16 @@ class CNN():
     def restore(self, path):
         self.saver.restore(self.sess, path)
 
-if __name__ == "__main__":
-    _cnn = CNN()
-    file = SGF()
-    batch = 0
-    files = file.getFile('.\sgf\\')
-    trainFile = files[:200]
-    for file in trainFile:
-        x, y = file.datatoTrain(files, 1)
-        _cnn.sess.run(_cnn.train_step, feed_dict={_cnn.x: x, _cnn.y: y})
-        batch += 1
-        print(batch)
-    _cnn.save('.\model\model1.ckpt')
+# save training result as model.ckpt
+# if __name__ == "__main__":
+#     _cnn = CNN()
+#     sgf = SGF()
+#     batch = 0
+#     files = sgf.getSgf('.\SGF\\')
+#     trainFile = files[:1000]
+#     for f in trainFile:
+#         x, y = sgf.datatoTrain(f,1)
+#         _cnn.sess.run(_cnn.train_step, feed_dict={_cnn.x: x, _cnn.y: y})
+#         batch += 1
+#         print(batch)
+#     _cnn.save('.\model\model.ckpt')

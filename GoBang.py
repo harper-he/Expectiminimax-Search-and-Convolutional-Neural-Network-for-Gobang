@@ -179,7 +179,6 @@ class AI(object):
         self.opponent = 1 if player == 2 else 2
 
     def findNext(self):
-        # using cnn to find next 10 most possible point
         if self.trained == True:
             return self.cnn.prediction(self.board)
         else:

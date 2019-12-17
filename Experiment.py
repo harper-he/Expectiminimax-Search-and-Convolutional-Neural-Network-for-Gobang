@@ -2,8 +2,8 @@ from GoBang import GoBang
 from Train import CNN
 import matplotlib.pyplot as plt
 
-probSize = [5, 7]
-completeGames = 5
+probSize = [5, 7, 9, 11, 13]
+completeGames = 25
 modelPath = ".\model\model.ckpt"
 trained = False
 
@@ -56,9 +56,9 @@ if __name__ == '__main__':
     plt.bar(probSize, trainedWin, label="trained")
     plt.bar(probSize, untrainedWin, label="untrained")
     for x, y in zip(probSize, trainedWin):
-        plt.text(x, y + 0.1, "%f" % y)
+        plt.text(x, y + 0.1, "%d" % y)
     for x, y in zip(probSize, untrainedWin):
-        plt.text(x, y + 0.1, "%f" % y)
+        plt.text(x, y + 0.1, "%d" % y)
     plt.savefig("Win Rate")
 
     plt.figure("Efficiency")
@@ -68,8 +68,8 @@ if __name__ == '__main__':
     plt.bar(probSize, trainedNodes, label="trained")
     plt.bar(probSize, untrainedNodes, label="untrained")
     for x, y in zip(probSize, trainedNodes):
-        plt.text(x, y + 0.1, "%f" % y)
+        plt.text(x, y + 0.1, "%d" % y)
     for x, y in zip(probSize, untrainedNodes):
-        plt.text(x, y + 0.1, "%f" % y)
+        plt.text(x, y + 0.1, "%d" % y)
     plt.savefig("Efficiency")
     plt.show()
