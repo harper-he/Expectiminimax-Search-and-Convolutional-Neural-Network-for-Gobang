@@ -13,11 +13,13 @@ Experiment.py -- The experiment for AI playing with baseline
 Train.py -- The structure for training model. To run it, needs to download .sgf data and save in SGF directory first
 
 
-
 ## Versions: 
 
 Python3.7
 
 Tensorflow 1.14
+
+## Reference:
+https://cloud.tencent.com/developer/news/88885
 
 
